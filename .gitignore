@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/migrations/**/migration_lock.toml
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+*.tgz
+.vercel

@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SpcAdmin {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(150)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  phone        String?  @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+  isActive     Boolean  @default(true) @map("is_active")
+
+  upcomingCompanies UpcomingCompany[]
+  ongoingDrives     OngoingDrive[]
+  completedDrives   CompletedDrive[]
+  auditLogs         AuditLog[]
+
+  @@map("spc_admins")
+}
+
+model StudentSession {
+  id          Int      @id @default(autoincrement())
+  googleEmail String   @map("google_email") @db.VarChar(150)
+  name        String   @db.VarChar(100)
+  branch      String   @db.VarChar(100)
+  loggedInAt  DateTime @default(now()) @map("logged_in_at")
+
+  @@index([googleEmail])
+  @@map("student_sessions")
+}
+
+model UpcomingCompany {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(200)
+  tentativeDate  DateTime @map("tentative_date") @db.Date
+  info           String?  @db.Text
+  attachmentName String?  @map("attachment_name") @db.VarChar(200)
+  attachmentUrl  String?  @map("attachment_url") @db.Text
+  createdBy      Int?     @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  admin SpcAdmin? @relation(fields: [createdBy], references: [id])
+
+  @@index([tentativeDate])
+  @@map("upcoming_companies")
+}
+
+model OngoingDrive {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(200)
+  jd            String   @db.Text
+  status        String   @db.VarChar(20) // 'gform' or 'round'
+  currentRound  String?  @map("current_round") @db.VarChar(200)
+  roundNumber   Int      @default(0) @map("round_number")
+  totalRounds   Int      @default(0) @map("total_rounds")
+  gformLink     String?  @map("gform_link") @db.Text
+  gformDeadline DateTime? @map("gform_deadline")
+  createdBy     Int?     @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  admin SpcAdmin? @relation(fields: [createdBy], references: [id])
+
+  @@index([status])
+  @@map("ongoing_drives")
+}
+
+model CompletedDrive {
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(200)
+  jd               String   @db.Text
+  finalListName    String?  @map("final_list_name") @db.VarChar(200)
+  finalListUrl     String?  @map("final_list_url") @db.Text
+  selectedListName String?  @map("selected_list_name") @db.VarChar(200)
+  selectedListUrl  String?  @map("selected_list_url") @db.Text
+  selectedCount    Int      @default(0) @map("selected_count")
+  spcMemberName    String   @map("spc_member_name") @db.VarChar(100)
+  spcMemberPhone   String?  @map("spc_member_phone") @db.VarChar(20)
+  spcMemberEmail   String?  @map("spc_member_email") @db.VarChar(150)
+  createdBy        Int?     @map("created_by")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  admin SpcAdmin? @relation(fields: [createdBy], references: [id])
+
+  @@index([name])
+  @@map("completed_drives")
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  adminId     Int?     @map("admin_id")
+  action      String   @db.VarChar(50)
+  tableName   String   @map("table_name") @db.VarChar(50)
+  recordId    Int      @map("record_id")
+  oldData     Json?    @map("old_data")
+  newData     Json?    @map("new_data")
+  performedAt DateTime @default(now()) @map("performed_at")
+
+  admin SpcAdmin? @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([tableName])
+  @@map("audit_log")
+}
